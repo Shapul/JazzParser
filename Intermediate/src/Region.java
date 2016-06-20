@@ -26,6 +26,8 @@ public class Region {
 		
 		
 		if(fromkey - tokey ==0){
+			if(!fromMode.equals(toMode))
+				regiondistance = (float)0.5;
 		}
 		else if(fromkey - tokey ==7||fromkey - tokey ==-7||fromkey - tokey ==5||fromkey - tokey ==-5){
 			regiondistance = 1;
@@ -49,8 +51,8 @@ public class Region {
 			regiondistance = 99;
 		}
 
-		if(!(fromMode.equals(toMode)))
-			regiondistance = regiondistance + (float)0.5;
+//		if(!(fromMode.equals(toMode)))
+//			regiondistance = regiondistance + (float)0.5;
 		
 		/*
 		//well would you look at that

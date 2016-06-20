@@ -6,7 +6,7 @@ public class Input {
 	
 	public static String[][] getInput()
 	{
-		String ChordInput = "Am Dm EMm7 Am";
+		String ChordInput = "Am Dm EMm7 Am Am";
 /*
 		//this is exactly the same but way cooler 'cause user interaction is always cooler isn't it		
 		//but yeah we're not gonna input it all the time so.

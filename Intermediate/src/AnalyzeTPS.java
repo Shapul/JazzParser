@@ -7,7 +7,7 @@ public class AnalyzeTPS {
 		//	Input.getInput().clone();
 		{
 			
-		/*
+		
 		//1
 		//Dm - FM modulation (relative)
 		{ "4", "m7" },
@@ -90,6 +90,7 @@ public class AnalyzeTPS {
 		/*
 		//7
 		//FM-Dm rel modulation
+		//adding region cost makes Am appear which is not very nice
 		{ "5", "M7" },
 		{ "10", "M" },
 		{ "0", "Mm7" },
@@ -121,12 +122,12 @@ public class AnalyzeTPS {
 		//*/
 		
 		
-		
+		/*
 		//9
 		//Am cadence
 		{"9","m"},
 		{"2","m"},
-		{"4","Mm7"},
+		{"4","m7"},
 		{"9","m"},
 		//*/
 		
@@ -140,23 +141,14 @@ public class AnalyzeTPS {
 	public static void analyzeTPS(){
 /*		
 		String InputChords[][] = Input.StringToChords();
-//		System.out.println(Arrays.equals(ChordName,InputChords));
 		System.out.println(ChordName.length == InputChords.length);
-		for(int i = 0;i<ChordName.length;i++)
-		{
-//			System.out.println(Arrays.equals(ChordName[i],InputChords[i]));
-			System.out.println();
-			System.out.println(ChordName[i].length == InputChords[i].length);
-			System.out.println(ChordName[i][0].equals(InputChords[i][0]));
-			System.out.println(ChordName[i][1].equals(InputChords[i][1]));
-		}
 */		
 		
 		//�m�[�h�����A�i�[
 				String[][][] ChordNode = new String[ChordName.length][24][2];
 				//ChordNode[i]<->ChordName[i]
 				//ChordNode[i][j][0]:shortest path distance from 1st node, [1]:previous node in that path(i>0) 
-				//1->24:enumerates all possible keys in M(j<12)/m(j>=12)
+				//0->23:enumerates all possible keys in M(j<12)/m(j>=12)
 				
 				for(int i=0;i<ChordName.length;i++){
 					for(int j=0;j<24;j++){
@@ -249,6 +241,85 @@ public class AnalyzeTPS {
 		
 	}
 	
+	
+	//test to see if we can do with only majors. Turns out we can't because sometimes minor is shorter and rel. major is >= another major
+	public static void major_analyzeTPS()
+	{
+//		String InputChords[][] = Input.StringToChords();
+		
+		//�m�[�h�����A�i�[
+		String[][][] ChordNode = new String[ChordName.length][24][2];
+		//ChordNode[i]<->ChordName[i]
+		//ChordNode[i][j][0]:shortest path distance from 1st node, [1]:previous node in that path(i>0) 
+		//0->11:enumerates all possible keys in M
+		
+		for(int i=0;i<ChordName.length;i++)
+		{
+			for(int j=0;j<12;j++)
+			{
+				ChordNode[i][j][0] = "0";//���̃m�[�h�ɓ��B����܂ł̍ŒZ����
+				ChordNode[i][j][1] = "No";//"No"�̓p�X���O�̃m�[�h����ʂ��Ă��Ă��Ȃ��Ƃ������ƁD�p�X���ʂ��Ă���Ȃ炻�̔ԍ������D
+			}
+		}
+				
+			
+		//find shortest distances
+		for(int i=0;i<ChordNode.length-1;i++)
+		{
+			for(int j=0;j<12;j++)
+			{
+				for(int k=0;k<12;k++)
+				{
+					//[i][k]->[i+1][j]
+					float d = TonalPitchSpace.calcTonalPitchSpace(Integer.parseInt(ChordName[i][0]), ChordName[i][1], k, "M", 
+								Integer.parseInt(ChordName[i+1][0]), ChordName[i+1][1], j, "M");
+							
+					if((Float.parseFloat(ChordNode[i][k][0]) + d) < Float.parseFloat(ChordNode[i+1][j][0]) 
+							|| Float.parseFloat(ChordNode[i+1][j][0])== 0 )
+					{
+						ChordNode[i+1][j][0] = (Float.parseFloat(ChordNode[i][k][0]) + d)+"";//�ŒZ�����̍X�V
+						ChordNode[i+1][j][1] = k+"";//�p�X���ʂ��Ă���Ȃ炻�̔ԍ������D
+					}
+				}
+			}
+		}
+				
+		float distance = 0;
+		int path = 0;
+			
+		//find last node of shortest path
+		//�ŏI�m�[�h�݂̂̏���
+		for(int j=0; j<12; j++)
+		{
+			if(Float.parseFloat(ChordNode[ChordName.length-1][j][0]) < distance ||distance==0 )
+			{
+				distance = Float.parseFloat(ChordNode[ChordName.length-1][j][0]);
+				path = j;
+			}
+		}
+	
+		for(int i=ChordNode.length-1; i>-1; i--)
+		{
+			//�A�E�g�v�b�g�Ɋi�[
+			ChordOutput[i][0] = ChordName[i][0];
+			ChordOutput[i][1] = ChordName[i][1];
+			if(path<12)
+			{
+				ChordOutput[i][2] = path+"";
+				ChordOutput[i][3] = "M";
+			}
+			else
+			{
+				ChordOutput[i][2] = (path-12)+"";
+				ChordOutput[i][3] = "m";
+			}
+				
+			//path�̍X�V
+			if(i!=0)
+				path = Integer.parseInt(ChordNode[i][path][1]);
+		}
 
+		return;
+	}
 	
 }

@@ -458,7 +458,8 @@ public class IntermediateAnnouncement {
 					ruleCheck(Annotation);
 					//System.out.println(category);
 					//Sの要素が一つである場合
-					if(category.size()==2 && category.get(1).equals("")){
+					if(category.size()==2 && category.get(1).equals("") && isValid(Annotation)){
+					//if(category.size()==2 && category.get(1).equals("")){
 						//解析成功のフラグを返す
 						flag = true;
 						//FinalOutputに格納
@@ -510,13 +511,14 @@ public class IntermediateAnnouncement {
 	//長調・短調のどちらの辞書を使うのか
 	private static void CCG(int s, int g, String[][] LM, String[][] Lm){
 		
-		//長調なら
+/*		//長調なら
 		if(AnalyzeTPS.ChordOutput[s][3].equals("M")){
+
 			innerCCG(s, g, LM);
 			//parse in relative minor
 			//Should maybe add test to do it only if same distance path as minor?
 			//like check distance up to g in ChordNode maybe
-			//but maybe it's not minor 'cause it cost more to come back from minor than from major ?
+			//but maybe it's not minor 'cause it costs more to come back from minor than from major ?
 			//'cause there is a cost
 			//hmmmmmmmm
 			//hmmm
@@ -540,6 +542,8 @@ public class IntermediateAnnouncement {
 			//no need to test anything because if it's in minor it means it was definitely a shorter path than in major
 			innerCCG(s, g, Lm);
 		}
+*/
+		chunkCCG(s,g,LM,Lm);
 	}
 	/////////////////////////////////////////////////////////////////////////////////
 	
@@ -588,14 +592,15 @@ public class IntermediateAnnouncement {
 		
 		//端っこの調をそろえる
 		if(!(Degree.length==1)){
-			if(!(Degree[0][2].equals(Degree[1][2])&&Degree[0][3].equals(Degree[1][3]))){
-				Degree[0][2] = Degree[1][2];
-				Degree[0][3] = Degree[1][3];
-			}
 			if(!(Degree[g-s][2].equals(Degree[g-s-1][2])&&Degree[g-s][3].equals(Degree[g-s-1][3]))){
 				Degree[g-s][2] = Degree[g-s-1][2];
 				Degree[g-s][3] = Degree[g-s-1][3];
 			}
+			if(!(Degree[0][2].equals(Degree[1][2])&&Degree[0][3].equals(Degree[1][3]))){
+				Degree[0][2] = Degree[1][2];
+				Degree[0][3] = Degree[1][3];
+			}
+
 			
 		}
 		
@@ -690,27 +695,222 @@ public class IntermediateAnnouncement {
 		}
 		
 	}
+	/////////////////////////////////////////////////////////////////////////////////
 	
 	private static void toRelative(int s, int g){
-		if(AnalyzeTPS.ChordOutput[s][3].equals("M")){
-			for(int i = s;i<g+1;i++){
+		for(int i = s;i<g+1;i++)
+		{
+			if(AnalyzeTPS.ChordOutput[i][3].equals("M"))
+			{
 				AnalyzeTPS.ChordOutput[i][2] = (Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])+9)+"";
-				if(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])>12)
+				if(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])>11)
 					AnalyzeTPS.ChordOutput[i][2]=(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])-12)+"";
 				AnalyzeTPS.ChordOutput[i][3] = "m";
 			}
-		}
-		else{
-			for(int i = s;i<g+1;i++){
+			else
+			{
 				AnalyzeTPS.ChordOutput[i][2] = (Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])+3)+"";
-				if(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])>12)
+				if(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])>11)
 					AnalyzeTPS.ChordOutput[i][2]=(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])-12)+"";
 				AnalyzeTPS.ChordOutput[i][3] = "M";
 			}
 		}
+	}
+	/////////////////////////////////////////////////////////////////////////////////
+
+	private static void chunkCCG(int s, int g, String[][] LM, String[][] Lm)
+	{
+
+	//with pivots 1st & last key may be different.
+	//keep them in a corner and change them to the same as the rest for the analysis.
+		String firstkey = AnalyzeTPS.ChordOutput[s][2];
+		String firstmode = AnalyzeTPS.ChordOutput[s][3];
+		String lastkey = AnalyzeTPS.ChordOutput[g][2];
+		String lastmode = AnalyzeTPS.ChordOutput[g][3];
+
+		AnalyzeTPS.ChordOutput[s][2] = AnalyzeTPS.ChordOutput[s+1][2];
+		AnalyzeTPS.ChordOutput[s][3] = AnalyzeTPS.ChordOutput[s+1][3];
+		AnalyzeTPS.ChordOutput[g][2] = AnalyzeTPS.ChordOutput[g-1][2];
+		AnalyzeTPS.ChordOutput[g][3] = AnalyzeTPS.ChordOutput[g-1][3];
+		
+		
+			if(AnalyzeTPS.ChordOutput[s][3].equals("m"))
+				toRelative(s,g);
+
+		
+		
+		int froms = s;
+		int fromM = lastTonic(s,g,LM)+1;
+		
+		toRelative(s,g);
+		int fromm = lastTonic(s,g,Lm)+1;
+		toRelative(s,g);
+		
+		while(froms<g)
+		{
+			if(fromM == g+1 && fromm == g+1)
+			{
+				System.out.println("not here");
+				flag = false;
+			}
+			
+			int next = nextTonic(froms,fromm,fromM,g,LM,Lm);
+			
+			if(next==g+1)
+			{
+				froms = g+1;
+				System.out.println("no tonic lol");
+				flag = false;
+			}
+			else
+			{
+				if(AnalyzeTPS.ChordOutput[froms][3].equals("M"))
+				{
+					int last=lastTonic(next,g,LM);
+					innerCCG(froms,last,LM);
+					
+					if(flag)
+					{
+						froms = last+1;
+						fromM = last+1;
+						fromm = last+1;
+					}
+					else
+					{
+						if(fromm<fromM)
+							fromm = fromM;
+						fromM = last+1;
+					}
+				}
+	
+				else
+				{
+					int last = lastTonic(next,g,Lm);
+					innerCCG(froms,last,Lm);
+				
+					if(flag)
+					{
+						froms = last+1;
+						fromM = last+1;
+						fromm = last+1;
+						if(last<g)
+							toRelative(last+1,g);
+					}
+					else
+					{
+						if(fromM<fromm+1)
+							fromM = fromm+1;
+						fromm = last+1;
+						toRelative(froms,g);
+					}
+				}
+			}
+		}
+		
+		AnalyzeTPS.ChordOutput[s][2] = firstkey;
+		AnalyzeTPS.ChordOutput[s][3] = firstmode;
+		AnalyzeTPS.ChordOutput[g][2] = lastkey;
+		AnalyzeTPS.ChordOutput[g][3] = lastmode;
 		
 	}
 	/////////////////////////////////////////////////////////////////////////////////
+	
+	//returns last consecutive tonic starting at fromT (fromT-1 if fromT isn't a tonic)
+	private static int lastTonic(int fromT, int g, String[][]L)
+	{
+		String[][] Degree = degreeNameConversion(fromT,g);
+		boolean tonic_flag = isTonic(fromT,fromT, Degree, L);
+		int last=fromT;
+		while(last<g && tonic_flag)
+		{
+			last++;
+			tonic_flag = isTonic(fromT,last, Degree, L);
+		}
+		if(!tonic_flag)
+			return last-1;
+		else
+			return g;
+	}
+	/////////////////////////////////////////////////////////////////////////////////
+	
+	//returns first tonic in major or minor. if minor, turns s->g into minor.
+	private static int nextTonic(int s, int fromMin, int fromMaj, int g, String[][]LM, String[][]Lm)
+	{
+		int next=g+1;
+		int nextm = 0;
+		if(fromMaj<g+1)
+			next = firstTonic(fromMaj,g,LM);
+
+		if(fromMin<g+1)
+		{
+			toRelative(s,g);
+			if(next<g+1)
+				nextm = firstTonic(fromMin,next,Lm);
+			else
+				nextm = firstTonic(fromMin,g,Lm);
+			if(nextm<next)
+				next=nextm;
+			else
+				toRelative(s,g);
+		}
+		return next;
+	}
+	/////////////////////////////////////////////////////////////////////////////////
+	
+	//returns first tonic according to L (LM or Lm) between fromT and g. if none, returns g+1.
+	private static int firstTonic(int fromT, int g, String[][] L)
+	{
+		String[][] Degree = degreeNameConversion(fromT,g);
+		int tonic = fromT;
+		boolean tonic_flag = false; 
+		//look for first tonic in major
+		while(!tonic_flag && tonic<g+1)
+		{
+			tonic_flag = isTonic(fromT, tonic, Degree, L);
+			tonic++;
+		}
+		if(tonic_flag)
+			tonic--;
+		return tonic;
+	}
+	/////////////////////////////////////////////////////////////////////////////////
+
+	//is chord (#chord in Degree) a tonic ?
+	private static boolean isTonic(int s, int chord, String[][] Degree, String[][] L)
+	{
+		boolean tonic_flag = false;
+		int i = 0;
+		//check if it's a tonic
+		while(L[i][4].equals("Tonic") && !tonic_flag)
+		{
+			if(Comparison(chord-s,i,Degree,L))
+				tonic_flag = true;
+			else
+				i++;
+		}
+		return tonic_flag;
+	}
+	/////////////////////////////////////////////////////////////////////////////////
+	
+	private static boolean isValid(String[][] Annotation)
+	{
+		boolean cadence_flag = false;
+		//just have to check for dominant because it can only be followed by a tonic
+		//(or another dominant thing)
+		//OK looking for V at the moment because a ii-V-i in m is a D-RD-T in M which is not cool
+		//OK looking for V-T since something ending with V doesn't seem to bother it too much
+		int i = 0;
+		while(i<Annotation.length-1 && !cadence_flag)
+		{
+			//cadence_flag = Annotation[i][4].equals("Dominant");
+			cadence_flag = Annotation[i][0].equals("7") && Annotation[i][4].equals("Dominant")
+							&& Annotation[i+1][4].equals("Tonic");
+			i++;
+		}
+		return cadence_flag;
+	}
+	/////////////////////////////////////////////////////////////////////////////////	
+	
 	private static String rootDisplay(String root){
 		if(root.equals("0")){
 			root = "Ⅰ";
