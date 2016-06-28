@@ -7,7 +7,7 @@ public class AnalyzeTPS {
 		//	Input.getInput().clone();
 		{
 			
-		
+		/*
 		//1
 		//Dm - FM modulation (relative)
 		{ "4", "m7" },
@@ -33,7 +33,7 @@ public class AnalyzeTPS {
 		
 		/*
 		//3
-		//Apparently all EbM, rel. minor doesn't give anything
+		//EbM
 		{ "11", "M7" },
 		{ "10", "Mm7" },
 		{ "3", "M7" },
@@ -87,10 +87,11 @@ public class AnalyzeTPS {
 		{ "7", "m" },
 		//*/
 		
-		/*
+		
 		//7
 		//FM-Dm rel modulation
 		//adding region cost makes Am appear which is not very nice
+		//but anyway last 6 never make any sense
 		{ "5", "M7" },
 		{ "10", "M" },
 		{ "0", "Mm7" },

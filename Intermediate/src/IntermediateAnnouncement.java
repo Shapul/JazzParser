@@ -201,7 +201,17 @@ public class IntermediateAnnouncement {
 				}		
 			}	
 			//それ以外の時でiとi+1の間で転調が起こっているとき
-			else if(!(AnalyzeTPS.ChordOutput[i][2].equals(AnalyzeTPS.ChordOutput[i+1][2]) && AnalyzeTPS.ChordOutput[i][3].equals(AnalyzeTPS.ChordOutput[i+1][3]))){
+			else if(!((AnalyzeTPS.ChordOutput[i][2].equals(AnalyzeTPS.ChordOutput[i+1][2]) 
+							&& AnalyzeTPS.ChordOutput[i][3].equals(AnalyzeTPS.ChordOutput[i+1][3]))
+				//			)){
+							||((Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])==Integer.parseInt(AnalyzeTPS.ChordOutput[i+1][2])+3
+								|| Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])==Integer.parseInt(AnalyzeTPS.ChordOutput[i+1][2])-9)
+							&& AnalyzeTPS.ChordOutput[i][3].equals("M")
+							&& AnalyzeTPS.ChordOutput[i+1][3].equals("m"))
+						||((Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])==Integer.parseInt(AnalyzeTPS.ChordOutput[i+1][2])-3
+								|| Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])==Integer.parseInt(AnalyzeTPS.ChordOutput[i+1][2])+9)
+							&& AnalyzeTPS.ChordOutput[i][3].equals("m")
+							&& AnalyzeTPS.ChordOutput[i+1][3].equals("M")))){
 				
 				//転調部分をk2に
 				k2 = i+1;
@@ -231,7 +241,7 @@ public class IntermediateAnnouncement {
 						else{
 							//エラーを返す
 							System.out.println("error3");
-							break outside;
+//							break outside;
 						}	
 					}	
 				}
@@ -274,7 +284,7 @@ public class IntermediateAnnouncement {
 								else{
 									//エラーを返す
 									System.out.println("error4");
-									break outside;
+//									break outside;
 								}
 							}	
 						}
@@ -698,7 +708,7 @@ public class IntermediateAnnouncement {
 	/////////////////////////////////////////////////////////////////////////////////
 	
 	private static void toRelative(int s, int g){
-		for(int i = s;i<g+1;i++)
+		for(int i=s;i<g+1;i++)
 		{
 			if(AnalyzeTPS.ChordOutput[i][3].equals("M"))
 			{
@@ -713,6 +723,21 @@ public class IntermediateAnnouncement {
 				if(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])>11)
 					AnalyzeTPS.ChordOutput[i][2]=(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])-12)+"";
 				AnalyzeTPS.ChordOutput[i][3] = "M";
+			}
+		}
+	}
+	/////////////////////////////////////////////////////////////////////////////////
+
+	private static void unify(int s, int g)//btwn s & g everything can be relative major/minor, make everything the major
+	{
+		for(int i=s;i<g+1;i++)
+		{
+			if(AnalyzeTPS.ChordOutput[i][3].equals("m"))
+			{
+				AnalyzeTPS.ChordOutput[i][2] = (Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])+3)+"";
+				if(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])>11)
+					AnalyzeTPS.ChordOutput[i][2]=(Integer.parseInt(AnalyzeTPS.ChordOutput[i][2])-12)+"";
+				AnalyzeTPS.ChordOutput[i][3] = "M";				
 			}
 		}
 	}
@@ -734,9 +759,9 @@ public class IntermediateAnnouncement {
 		AnalyzeTPS.ChordOutput[g][3] = AnalyzeTPS.ChordOutput[g-1][3];
 		
 		
-			if(AnalyzeTPS.ChordOutput[s][3].equals("m"))
-				toRelative(s,g);
-
+//			if(AnalyzeTPS.ChordOutput[s][3].equals("m"))
+//				toRelative(s,g);
+		unify(s,g);
 		
 		
 		int froms = s;
@@ -749,17 +774,13 @@ public class IntermediateAnnouncement {
 		while(froms<g)
 		{
 			if(fromM == g+1 && fromm == g+1)
-			{
-				System.out.println("not here");
 				flag = false;
-			}
 			
 			int next = nextTonic(froms,fromm,fromM,g,LM,Lm);
 			
 			if(next==g+1)
 			{
 				froms = g+1;
-				System.out.println("no tonic lol");
 				flag = false;
 			}
 			else
@@ -897,13 +918,13 @@ public class IntermediateAnnouncement {
 		boolean cadence_flag = false;
 		//just have to check for dominant because it can only be followed by a tonic
 		//(or another dominant thing)
-		//OK looking for V at the moment because a ii-V-i in m is a D-RD-T in M which is not cool
+		//OK looking for V at the moment because a ii-V-i in m is a D-SD-T in M which is not cool
 		//OK looking for V-T since something ending with V doesn't seem to bother it too much
 		int i = 0;
 		while(i<Annotation.length-1 && !cadence_flag)
 		{
 			//cadence_flag = Annotation[i][4].equals("Dominant");
-			cadence_flag = Annotation[i][0].equals("7") && Annotation[i][4].equals("Dominant")
+			cadence_flag = ((Annotation[i][0].equals("7") && Annotation[i][4].equals("Dominant")) || Annotation[i][4].equals("Sub Dominant"))
 							&& Annotation[i+1][4].equals("Tonic");
 			i++;
 		}

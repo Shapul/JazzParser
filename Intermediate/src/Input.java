@@ -2,11 +2,11 @@
 
 
 public class Input {
-	//input of type "Am Cm7 A7 Dbdim7 C#"
+	//input of type "Am E Am Dm Am"
 	
 	public static String[][] getInput()
 	{
-		String ChordInput = "Am Dm EMm7 Am Am";
+		String ChordInput = "CM GM Am FM CM";
 /*
 		//this is exactly the same but way cooler 'cause user interaction is always cooler isn't it		
 		//but yeah we're not gonna input it all the time so.
